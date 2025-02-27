@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="jolopezdiarystyle.css">
+    <title>Dear Dearer Dearest Deer Diary</title>
+</head>
+<body>
+    <h1>Dear Dearer Dearest Deer Diary</h1>
+    <p>open up deer.</p>
+</body>
+
+<body>
+
+    <div class="container">
+        <h1>My Diaries</h1>
+        <button id="newDiaryBtn">➕ New Diary</button>
+        <div id="diaryList"></div>
+    </div>
+
+    <div id="diaryModal" class="modal">
+        <div class="modal-content">
+            <span class="close-btn">&times;</span>
+            <h2>Create/Edit Diary</h2>
+
+            <label for="diaryDate">Select Date:</label>
+            <input type="date" id="diaryDate">
+
+            <label for="diaryMood">Select Mood:</label>
+            <select id="diaryMood">
+                <option value="😊 Happy">😊 Happy</option>
+                <option value="😢 Sad">😢 Sad</option>
+                <option value="🤩 Excited">🤩 Excited</option>
+                <option value="😡 Angry">😡 Angry</option>
+                <option value="😴 Tired">😴 Tired</option>
+                <option value="😐 Neutral">😐 Neutral</option>
+            </select>
+
+            <label for="diaryText">Your Diary Entry:</label>
+            <textarea id="diaryText" placeholder="Write your thoughts..."></textarea>
+
+            <div class="modal-buttons">
+                <button id="saveDiaryBtn">Save Diary</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const newDiaryBtn = document.getElementById("newDiaryBtn");
+        const diaryModal = document.getElementById("diaryModal");
+        const closeBtn = document.querySelector(".close-btn");
+        const saveDiaryBtn = document.getElementById("saveDiaryBtn");
+        const diaryList = document.getElementById("diaryList");
+
+        let diaries = JSON.parse(localStorage.getItem("diaries")) || [];
+        let editIndex = null;
+
+        // Open modal to create a new diary entry
+        newDiaryBtn.addEventListener("click", () => {
+            diaryModal.style.display = "flex";
+            document.getElementById("diaryDate").value = "";
+            document.getElementById("diaryMood").value = "😊 Happy";
+            document.getElementById("diaryText").value = "";
+            editIndex = null;
+        });
+
+        // Close modal
+        closeBtn.addEventListener("click", () => {
+            diaryModal.style.display = "none";
+        });
+
+        // Save or update diary entry
+        saveDiaryBtn.addEventListener("click", () => {
+            const date = document.getElementById("diaryDate").value;
+            const mood = document.getElementById("diaryMood").value;
+            const text = document.getElementById("diaryText").value;
+
+            if (!date || !text.trim()) {
+                alert("Please select a date and write something!");
+                return;
+            }
+
+            if (editIndex !== null) {
+                diaries[editIndex] = { date, mood, text };
+            } else {
+                diaries.push({ date, mood, text });
+            }
+
+            localStorage.setItem("diaries", JSON.stringify(diaries));
+            renderDiaries();
+            diaryModal.style.display = "none";
+        });
+
+        // Render diary list (without showing text initially)
+        function renderDiaries() {
+            diaryList.innerHTML = "";
+            diaries.forEach((diary, index) => {
+                const diaryItem = document.createElement("div");
+                diaryItem.classList.add("diary-item");
+                diaryItem.innerHTML = `
+                    <div class="diary-header" onclick="toggleDiary(${index})">
+                        <strong>${diary.date} - ${diary.mood}</strong>
+                        <button onclick="editDiary(${index}); event.stopPropagation();">✏️ Edit</button>
+                        <button onclick="deleteDiary(${index}); event.stopPropagation();">🗑️ Delete</button>
+                    </div>
+                    <p class="diary-text" id="diary-text-${index}" style="display: none;">${diary.text}</p>
+                `;
+                diaryList.appendChild(diaryItem);
+            });
+        }
+
+        // Toggle diary visibility
+        function toggleDiary(index) {
+            const diaryText = document.getElementById(`diary-text-${index}`);
+            diaryText.style.display = diaryText.style.display === "none" ? "block" : "none";
+        }
+
+        // Edit diary entry
+        function editDiary(index) {
+            const diary = diaries[index];
+            document.getElementById("diaryDate").value = diary.date;
+            document.getElementById("diaryMood").value = diary.mood;
+            document.getElementById("diaryText").value = diary.text;
+            diaryModal.style.display = "flex";
+            editIndex = index;
+        }
+
+        // Delete diary entry
+        function deleteDiary(index) {
+            diaries.splice(index, 1);
+            localStorage.setItem("diaries", JSON.stringify(diaries));
+            renderDiaries();
+        }
+
+        // Load saved diaries on page load
+        renderDiaries();
+    </script>
+
+</body>
+</html>
